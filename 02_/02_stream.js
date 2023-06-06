@@ -13,10 +13,16 @@
  * finish - 所有数据已被写入到底层系统时触发。
  *
  * 本教程会为大家介绍常用的流操作。
+ * 从流中读取数据 createReadStream
+ * 写入流 createWriteStream
+ * 管道流 pipe
+ * 链式流 pipe(xx).pipi(xx)
  */
 
 // eg:从流中读取数据
 import fs from 'fs';
+import {setTimeout} from "timers";
+
 let data = '';
 // 创建可读流
 let readerStream = fs.createReadStream('./input.txt');
@@ -24,20 +30,67 @@ let readerStream = fs.createReadStream('./input.txt');
 readerStream.setEncoding("utf8");
 
 // 处理流事件 --> data, end, and error
-readerStream.on('data', function(chunk) {
+readerStream.on('data', function (chunk) {
     data += chunk;
     console.log('chunk=' + chunk)
 });
-readerStream.on('end',function(){
-    console.log(data);
+readerStream.on('end', function () {
+    console.log("data:", data);
 });
 
-readerStream.on('error', function(err){
-    console.log(err.stack);
+readerStream.on('error', function (err) {
+    console.log("error:", err.stack);
 });
 
-console.log("程序执行完毕");
+console.log("读取程序执行完毕");
 
 /*
-todo 写入流
+eg:写入流
  */
+function sleep(time) {
+    return new Promise(resolve => setTimeout(resolve, time));
+}
+
+await sleep(1000);
+
+// data = "hello world";
+let writeStream = fs.createWriteStream("./output.txt");
+writeStream.write(data, "utf-8");
+writeStream.end();
+
+writeStream.on("finish", () => {
+    console.log("写入完成")
+})
+writeStream.on("error", err => {
+    console.log("error:", err.stack)
+})
+
+console.log("写入程序执行完毕")
+
+await sleep(1000);
+/*
+管道流
+管道提供了一个输出流到输入流的机制。通常我们用于从一个流中获取数据并将数据传递到另外一个流中。
+source --data--> dest
+ */
+fs.createReadStream("input.txt")
+    .pipe(fs.createWriteStream("output2.txt"));
+console.log("管道流程序执行完毕");
+
+await sleep(1000);
+/*
+链式流
+链式是通过连接输出流到另外一个流并创建多个流操作链的机制。链式流一般用于管道操作。
+接下来我们就是用管道和链式来压缩和解压文件。
+ */
+import zlib from "zlib";
+fs.createReadStream("input.txt")
+    .pipe(zlib.createGzip())
+    .pipe(fs.createWriteStream("input.txt.gz"));
+console.log("文件压缩完成。");
+
+await sleep(1000);
+fs.createReadStream('input.txt.gz')
+    .pipe(zlib.createGunzip())
+    .pipe(fs.createWriteStream("input3.txt"));
+console.log("文件解压完成")
