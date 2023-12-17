@@ -11,18 +11,15 @@
  *  * 定义函数重载需要定义重载签名和一个实现签名。
  *  * 重载签名定义函数的形参和返回类型，没有函数体。一个函数可以有多个重载签名(不可调用)
  */
-
-console.log("函数重载 ---------------------------------------------")
-let suits = ["hearts", "spades", "clubs", "diamonds"];
-// 定义重载签名
-function greet(person: string): string;
-function greet(persons: string[]): string[];
+console.log("函数重载 ---------------------------------------------");
+var suits = ["hearts", "spades", "clubs", "diamonds"];
 // 定义实现签名
-function greet(person: unknown): unknown {
+function greet(person) {
     if (typeof person === 'string') {
-        return `Hello, ${person}!`;
-    } else if (Array.isArray(person)) {
-        return person.map(name => `Hello, ${name}!`);
+        return "Hello, ".concat(person, "!");
+    }
+    else if (Array.isArray(person)) {
+        return person.map(function (name) { return "Hello, ".concat(name, "!"); });
     }
     throw new Error('Unable to greet');
 }
@@ -31,7 +28,7 @@ console.log(greet(suits));
 /*
 编译后：
 var suits = ["hearts", "spades", "clubs", "diamonds"];
-// 定义实现签名
+// 实现签名
 function greet(person) {
     if (typeof person === 'string') {
         return "Hello, ".concat(person, "!");
